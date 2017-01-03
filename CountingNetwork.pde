@@ -40,20 +40,30 @@ class CountingNetwork {
      lower.bal = this;
      balancers.add(this);
     }
-    
-    public void pushToken(Token x){
+    //the functionality of a balancer
+    public void pushThroughToken(Token x){
       if(bit){
-        
+        upper.enqueueTok(x);
+      }else {
+       lower.enqueueTok(x); 
       }
       bit = !bit;
     }
   }
+  
+  //should probably be a proper abstract class but already typed lots in other class :p
+  abstract class End{
+   public abstract void enqueueTok(Token x);
+   public abstract void popTok();
+   public abstract boolean active();
+   public abstract End next();
+  }
 
 
-
-  class BalancerEnd {
+  class BalancerEnd extends End{
     private int d,w;//depth and wire number: bothw 0 to x-1
-    Balancer bal;
+    Balancer bal;//main balancer class.
+    End e; //next end along the wire.
     List<Token>queue;
     public BalancerEnd(int d, int w){
       this.d = d;
@@ -65,9 +75,25 @@ class CountingNetwork {
     public void enqueueTok(Token x){
      queue.add(x);
     }
+    //pop from queue
+    public void popTok(){
+      if(active()){
+        Token x = queue.get(0);
+        queue.remove(0);
+        bal.pushThroughToken(x);
+      }
+    }
     //the balancer calls this and pushes a token through this end to the end in front of it
-    public void pushThroughTok(){
-      
+    public void pushThroughTok(Token x){
+      next().enqueueTok(x);
+    }
+    
+    public boolean active(){
+     return !queue.isEmpty(); 
+    }
+    
+    public End next(){
+     return e; 
     }
   }
   
@@ -75,61 +101,3 @@ class CountingNetwork {
    
   }
 }
-
-
-//class Balancer<T>{
-//  boolean bit = true;
-//  //boolean active = false;
-//  BalancerEnd<T>upper, lower;
-
-
-//  public Balancer(int d1,int w1,int d2,int w2){//assume w1 > w2
-//  upper = new BalancerEnd(d1,w1);
-//  lower = new BalancerEnd(d2,w2);
-//  upper.bal = this;
-//  lower.bal = this;
-//  }
-
-//  public void pushThrough(Token<T> tok){
-//   if(bit){
-
-//   }
-//  }
-
-
-//}
-
-//class BalancerEnd<T>{
-// ArrayList<Token<T>>inputEnd; 
-// int d,w;//depth and wire number;
-// Balancer<T>bal; //balancer connected to: the balancer knows which end this is.
-// ArrayList<BalancerEnd>wire;
-// boolean active = false;
-
-//  public BalancerEnd(int d, int w){
-//    this.d = d;
-//    this.w = w;
-//  }
-
-//  public void addToken(Token<T> tok){
-//    inputEnd.add(tok);
-//    active = true;
-//  }
-
-//  //push through a token
-//  public void balance(){
-//   if(!active)return;
-//   Token x = inputEnd.get(0);
-//   inputEnd.remove(0);
-//   bal.
-//  }
-//}
-
-
-////simple Token
-//class Token<T>{
-//  T data;
-//  public Token(T data){
-//    this.data = data;
-//  }
-//}
