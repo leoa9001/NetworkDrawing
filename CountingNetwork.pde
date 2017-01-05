@@ -30,7 +30,7 @@ class CountingNetwork<T> {
   }
 
   public void addBalancer(int d1, int w1, int d2, int w2) {//0 to wireNum-1, 0 to depth-1
-    if(fin){
+    if (fin) {
       println("finished: did not add balancer.");
       return;
     }
@@ -44,8 +44,7 @@ class CountingNetwork<T> {
   //last step of construction of CountingNetwork: sorts the wires by depth and adds the wire ends (and starts)
   //It also fills in all the nexts of End
   public void finalize() {
-    if(fin)return;
-    
+    if (fin)return;
     //sort the balancerEnds
     for (ArrayList<BalancerEnd>list : balancerWires) {
       Collections.sort(list, new Comparator<BalancerEnd>() {
@@ -61,16 +60,16 @@ class CountingNetwork<T> {
       wires.get(i).addAll(balancerWires.get(i));
       wires.get(i).add(new WireEnd(i));
     }
-    
-    for(List<End>l : wires){
-     for(int i = 0; i < l.size()-1; i++){
-        l.get(i).setNext(l.get(i+1)); 
-     }
+
+    for (List<End>l : wires) {
+      for (int i = 0; i < l.size()-1; i++) {
+        l.get(i).setNext(l.get(i+1));
+      }
     }
-    
+
     activeEnds = new ArrayList<End>();
-    for(End e : wireStarts)if(e.active())activeEnds.add(e);
-    
+    for (End e : wireStarts)if (e.active())activeEnds.add(e);
+
     balancerWires = null;
     wireStarts = null;
   }
@@ -92,23 +91,28 @@ class CountingNetwork<T> {
 
 
   //actual network actions as methods:
-  public boolean randomPushThrough(){
-    if(!isActive())return false;
+  public boolean randomPushThrough() {
+    if (!isActive())return false;
     int i = rand.nextInt(activeEnds.size());
     End e = activeEnds.get(i);
     e.popTok();
-    if(!e.active())activeEnds.remove(e);
+    if (!e.active())activeEnds.remove(e);
     return true;
   }
-  
-  public boolean isActive(){
-   return !activeEnds.isEmpty();
+
+  public boolean isActive() {
+    return !activeEnds.isEmpty();
   }
-  
-  public int activeLength(){
-   return activeEnds.size(); 
+
+  public int activeLength() {
+    return activeEnds.size();
   }
-  
+
+  public int[] endLoads() {
+    int[] x = new int[wireNum];
+    for (int i = 0; i < wireNum; i++)x[i] = wires.get(i).get(wires.get(i).size()-1).load();
+    return x;
+  }
 
   //subclasses: 
 
@@ -140,6 +144,7 @@ class CountingNetwork<T> {
     public abstract boolean active();
     public abstract End next();
     public abstract void setNext(End n);
+    public abstract int load();
   }
 
 
@@ -161,7 +166,7 @@ class CountingNetwork<T> {
 
     public void enqueueTok(Token x) {
       queue.add(x);
-      if(!activeEnds.contains(this))activeEnds.add(this);
+      if (!activeEnds.contains(this))activeEnds.add(this);
     }
     //pop from queue
     public void popTok() {
@@ -186,6 +191,10 @@ class CountingNetwork<T> {
 
     public void setNext(End e) {
       this.e = e;
+    }
+    
+    public int load(){
+     return queue.size(); 
     }
   }
 
@@ -230,6 +239,10 @@ class CountingNetwork<T> {
     public void setNext(End e) {
       this.e = e;
     }
+    
+    public int load(){
+     return queue.size(); 
+    }
   }
 
   class WireEnd extends End {
@@ -262,6 +275,10 @@ class CountingNetwork<T> {
 
     public void setNext(End e) {
       this.e = e;
+    }
+    
+    public int load(){
+     return queue.size(); 
     }
   }
 }
