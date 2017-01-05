@@ -105,6 +105,10 @@ class CountingNetwork<T> {
    return !activeEnds.isEmpty();
   }
   
+  public int activeLength(){
+   return activeEnds.size(); 
+  }
+  
 
   //subclasses: 
 
@@ -121,9 +125,9 @@ class CountingNetwork<T> {
     //the functionality of a balancer
     public void pushThroughToken(Token x) {
       if (bit) {
-        upper.enqueueTok(x);
+        upper.pushThroughTok(x);
       } else {
-        lower.enqueueTok(x);
+        lower.pushThroughTok(x);
       }
       bit = !bit;
     }
