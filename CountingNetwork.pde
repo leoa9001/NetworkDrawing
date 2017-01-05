@@ -4,13 +4,17 @@ class CountingNetwork<T> {
   // number of wires
   private int wireNum;
   private int depth;
+  private int seed;
+  private Random rand;
 
   private boolean moving = false; // if something is moving
   private boolean fin = false;
 
-  public CountingNetwork(int depth, int wires) {
+  public CountingNetwork(int depth, int wires, int seed) {
     this.wireNum = wires;
     this.depth = depth;
+    this.seed = seed;
+    this.rand = new Random(seed);
     this.wires = new ArrayList<ArrayList<End>>(wires);
     for (int i = 0; i < wires; i++)this.wires.add(new ArrayList<End>());
     balancersDraw = new ArrayList<Balancer>();
@@ -26,6 +30,10 @@ class CountingNetwork<T> {
   }
 
   public void addBalancer(int d1, int w1, int d2, int w2) {//0 to wireNum-1, 0 to depth-1
+    if(fin){
+      println("finished: did not add balancer.");
+      return;
+    }
     balancersDraw.add(new Balancer(d1, w1, d2, w2));
   }
 
@@ -54,6 +62,15 @@ class CountingNetwork<T> {
       wires.get(i).add(new WireEnd(i));
     }
     
+    for(List<End>l : wires){
+     for(int i = 0; i < l.size()-1; i++){
+        l.get(i).setNext(l.get(i+1)); 
+     }
+    }
+    
+    activeEnds = new ArrayList<End>();
+    for(End e : wireStarts)if(e.active())activeEnds.add(e);
+    
     balancerWires = null;
     wireStarts = null;
   }
@@ -73,6 +90,21 @@ class CountingNetwork<T> {
   ArrayList<WireStart>wireStarts;
 
 
+
+  //actual network actions as methods:
+  public boolean randomPushThrough(){
+    if(!isActive())return false;
+    int i = rand.nextInt(activeEnds.size());
+    End e = activeEnds.get(i);
+    e.popTok();
+    if(!e.active())activeEnds.remove(e);
+    return true;
+  }
+  
+  public boolean isActive(){
+   return !activeEnds.isEmpty();
+  }
+  
 
   //subclasses: 
 
@@ -125,6 +157,7 @@ class CountingNetwork<T> {
 
     public void enqueueTok(Token x) {
       queue.add(x);
+      if(!activeEnds.contains(this))activeEnds.add(this);
     }
     //pop from queue
     public void popTok() {
@@ -183,7 +216,7 @@ class CountingNetwork<T> {
     }
 
     public boolean active() {
-      return queue.isEmpty();
+      return !queue.isEmpty();
     }
 
     public End next() {
