@@ -1,29 +1,76 @@
 import java.util.*;
 
-class CountingNetwork {
+class CountingNetwork<T> {
   // number of wires
   private int wireNum;
   private int depth;
 
-  private boolean moving; // if something is moving
+  private boolean moving = false; // if something is moving
+  private boolean fin = false;
 
-  public CountingNetwork(int wires, int depth) {
+  public CountingNetwork(int depth, int wires) {
     this.wireNum = wires;
     this.depth = depth;
     this.wires = new ArrayList<ArrayList<End>>(wires);
     for (int i = 0; i < wires; i++)this.wires.add(new ArrayList<End>());
-    balancers = new ArrayList<Balancer>();
-    balancerEnds = new ArrayList<BalancerEnd>();
+    balancersDraw = new ArrayList<Balancer>();
+    endsDraw = new ArrayList<End>();
+
+    //temp structures initialization
+    balancerWires = new ArrayList<ArrayList<BalancerEnd>>();
+    wireStarts = new ArrayList<WireStart>();
+    for (int i = 0; i < wires; i++) {
+      balancerWires.add(new ArrayList<BalancerEnd>());
+      wireStarts.add(new WireStart(i));
+    }
+  }
+
+  public void addBalancer(int d1, int w1, int d2, int w2) {//0 to wireNum-1, 0 to depth-1
+    balancersDraw.add(new Balancer(d1, w1, d2, w2));
+  }
+
+  public void loadToken(int w, T data) {
+    wireStarts.get(w).enqueueTok(new Token(data));
+  }
+
+  //last step of construction of CountingNetwork: sorts the wires by depth and adds the wire ends (and starts)
+  //It also fills in all the nexts of End
+  public void finalize() {
+    if(fin)return;
+    
+    //sort the balancerEnds
+    for (ArrayList<BalancerEnd>list : balancerWires) {
+      Collections.sort(list, new Comparator<BalancerEnd>() {
+        public int compare(BalancerEnd a, BalancerEnd b) {
+          return a.d - b.d;
+        }
+      }
+      );
+    }
+    //making the final wires
+    for (int i = 0; i < wireNum; i++) {
+      wires.get(i).add(wireStarts.get(i));
+      wires.get(i).addAll(balancerWires.get(i));
+      wires.get(i).add(new WireEnd(i));
+    }
+    
+    balancerWires = null;
+    wireStarts = null;
   }
 
   //list of things which are drawable: balancers and BalancerEnds (the drawing of balancer ends is the drawing of tokens which are in it's queue)
-  List<Balancer>balancers;
-  List<BalancerEnd>balancerEnds;
+  List<Balancer>balancersDraw;
+  List<End>endsDraw;
+
+  //datastructures for the internal shtuffs: to be initialized and used after finalize() is called. 
+  List<End>activeEnds;
+  List<ArrayList<End>>wires;//wire structure
 
 
 
-  //wire list of ends for forwarding through.
-  List<ArrayList<End>>wires;
+  //wire list of balancerEnds before through. both temporary (eliminate after finalize())
+  ArrayList<ArrayList<BalancerEnd>>balancerWires;
+  ArrayList<WireStart>wireStarts;
 
 
 
@@ -38,7 +85,6 @@ class CountingNetwork {
       lower = new BalancerEnd(d2, w2);
       upper.bal = this;
       lower.bal = this;
-      balancers.add(this);
     }
     //the functionality of a balancer
     public void pushThroughToken(Token x) {
@@ -57,6 +103,7 @@ class CountingNetwork {
     public abstract void popTok();
     public abstract boolean active();
     public abstract End next();
+    public abstract void setNext(End n);
   }
 
 
@@ -67,11 +114,13 @@ class CountingNetwork {
     Balancer bal;//main balancer class.
     End e; //next end along the wire.
     List<Token>queue;
+
     public BalancerEnd(int d, int w) {
       this.d = d;
       this.w = w;
       queue = new ArrayList<Token>();
-      balancerEnds.add(this);
+      endsDraw.add(this);
+      balancerWires.get(w).add(this);
     }
 
     public void enqueueTok(Token x) {
@@ -97,9 +146,17 @@ class CountingNetwork {
     public End next() {
       return e;
     }
+
+    public void setNext(End e) {
+      this.e = e;
+    }
   }
 
   class Token {
+    T data;
+    public Token(T data) {
+      this.data = data;
+    }
   }
 
   //minor but necessary classes:
@@ -132,6 +189,10 @@ class CountingNetwork {
     public End next() {
       return e;
     }
+
+    public void setNext(End e) {
+      this.e = e;
+    }
   }
 
   class WireEnd extends End {
@@ -143,22 +204,27 @@ class CountingNetwork {
       wireId = w;
       queue = new ArrayList<Token>();
       e = this;
+      endsDraw.add(this);
     }
 
-    public void enqueueTok(Token x){
+    public void enqueueTok(Token x) {
       queue.add(x);
     }
-  
-    public void popTok(){
-     queue.remove(0); 
+
+    public void popTok() {
+      queue.remove(0);
     }
-   
-    public boolean active(){
-     return false; 
+
+    public boolean active() {
+      return false;
     }
-    
-    public End next(){
-     return e; 
+
+    public End next() {
+      return e;
+    }
+
+    public void setNext(End e) {
+      this.e = e;
     }
   }
 }
