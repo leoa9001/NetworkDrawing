@@ -29,12 +29,12 @@ class CountingNetwork<T> {
     }
   }
 
-  public void addBalancer(int d1, int w1, int d2, int w2) {//0 to wireNum-1, 0 to depth-1
+  public void addBalancer(int d, int w1, int w2) {//0 to wireNum-1, 0 to depth-1
     if (fin) {
       println("finished: did not add balancer.");
       return;
     }
-    balancersDraw.add(new Balancer(d1, w1, d2, w2));
+    balancersDraw.add(new Balancer(d, w1, w2));
   }
 
   public void loadToken(int w, T data) {
@@ -54,6 +54,7 @@ class CountingNetwork<T> {
       }
       );
     }
+    println("THE SET: " + Arrays.toString(balancerWires.get(0).toArray()));
     //making the final wires
     for (int i = 0; i < wireNum; i++) {
       wires.get(i).add(wireStarts.get(i));
@@ -120,9 +121,9 @@ class CountingNetwork<T> {
     boolean bit = true;
     BalancerEnd upper, lower;
 
-    public Balancer(int d1, int w1, int d2, int w2) {
-      upper = new BalancerEnd(d1, w1);
-      lower = new BalancerEnd(d2, w2);
+    public Balancer(int d, int w1, int w2) {
+      upper = new BalancerEnd(d, w1);
+      lower = new BalancerEnd(d, w2);
       upper.bal = this;
       lower.bal = this;
     }
