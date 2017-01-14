@@ -54,7 +54,7 @@ class CountingNetwork<T> {
       }
       );
     }
-    println("THE SET: " + Arrays.toString(balancerWires.get(0).toArray()));
+    //println("THE SET: " + Arrays.toString(balancerWires.get(0).toArray()));
     //making the final wires
     for (int i = 0; i < wireNum; i++) {
       wires.get(i).add(wireStarts.get(i));
@@ -120,6 +120,13 @@ class CountingNetwork<T> {
   class Balancer {
     boolean bit = true;
     BalancerEnd upper, lower;
+    
+    //debug
+    //public String toString(){
+      
+    //}
+    
+    //end debug
 
     public Balancer(int d, int w1, int w2) {
       upper = new BalancerEnd(d, w1);
@@ -146,6 +153,7 @@ class CountingNetwork<T> {
     public abstract End next();
     public abstract void setNext(End n);
     public abstract int load();
+    public abstract String name();
   }
 
 
@@ -156,6 +164,19 @@ class CountingNetwork<T> {
     Balancer bal;//main balancer class.
     End e; //next end along the wire.
     List<Token>queue;
+    
+    //debug
+    public String name(){
+       if(this == this.bal.upper)return "BLU" + w + "."+d;
+       return "BLL" + d + "." + w;
+    }
+    
+    public String toString(){
+       String ret = name() +" -> " + next().name();
+       ret += " :: Tok: "+Arrays.toString(queue.toArray())+ " Act: "+ active();
+       return ret;
+    }
+    //end debug
 
     public BalancerEnd(int d, int w) {
       this.d = d;
@@ -204,6 +225,9 @@ class CountingNetwork<T> {
     public Token(T data) {
       this.data = data;
     }
+    public String toString(){
+     return data.toString(); 
+    }
   }
 
   //minor but necessary classes:
@@ -211,6 +235,17 @@ class CountingNetwork<T> {
     int wireId;
     End e;
     List<Token>queue;
+    
+    //debug
+    public String name(){
+        return "WS"+wireId;
+    }
+    public String toString(){
+       String ret = name() +" -> " + next().name();
+       ret += " :: Tok: "+Arrays.toString(queue.toArray())+ " Act: "+ active();
+       return ret;
+    }
+    //end debug
 
     public WireStart(int w) {
       wireId = w;
@@ -250,6 +285,18 @@ class CountingNetwork<T> {
     int wireId;
     End e;
     List<Token>queue;
+    
+    //debug 
+    public String name(){
+      return "WE"+wireId;
+    }
+    
+    public String toString(){
+       String ret = name() +" -> " + next().name();
+       ret += " :: Tok: "+Arrays.toString(queue.toArray())+ " Act: "+ active();
+       return ret;
+    }
+    //end debug
 
     public WireEnd(int w) {
       wireId = w;
